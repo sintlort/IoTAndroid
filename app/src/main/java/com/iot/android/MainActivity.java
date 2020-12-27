@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         mApiService = UtilsApi.getAPIService();
         mContext = this;
+        autoUpdate();
         arduinoState = findViewById(R.id.arduino_state);
         arduinoPosition = findViewById(R.id.arduino_position);
         updateArduino = findViewById(R.id.card_update);
@@ -60,6 +61,37 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 life = "off";
                 setTurnArduino(life);
+            }
+        });
+    }
+
+    private void autoUpdate() {
+        mApiService.getStateArduino().enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if(response.isSuccessful()){
+                    try {
+                        JSONObject jsonRESULTS = new JSONObject(response.body().string());
+                        String state = jsonRESULTS.getString("state");
+                        String position = jsonRESULTS.getString("position");
+                        arduinoState.setText(state);
+                        arduinoPosition.setText(position);
+                        Toast.makeText(mContext, "Berhasil Update", Toast.LENGTH_SHORT).show();
+                    } catch (JSONException e){
+                        e.printStackTrace();
+                        Toast.makeText(mContext, "Error, hubungi developer!!", Toast.LENGTH_SHORT).show();
+                    } catch (IOException e){
+                        e.printStackTrace();
+                        Toast.makeText(mContext, "Error, hubungi developer!!", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(mContext, "Tidak berhasil Update", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                t.printStackTrace();
             }
         });
     }
